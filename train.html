@@ -99,6 +99,17 @@
         </div>
 
         <div id="schedule" class="train-schedule"></div>
+        
+        <!-- انتخاب زمان هشدار -->
+        <div class="mb-3">
+            <label for="alertTime" class="form-label">چند دقیقه قبل هشدار داده شود؟</label>
+            <select class="form-select" id="alertTime">
+                <option value="15">15 دقیقه قبل</option>
+                <option value="30">30 دقیقه قبل</option>
+                <option value="45">45 دقیقه قبل</option>
+            </select>
+        </div>
+
         <button class="btn btn-primary w-100" onclick="detectLocation()">تشخیص موقعیت من</button>
     </div>
 
@@ -134,6 +145,13 @@
                 { departure: "20:38", arrival: "21:10" }
             ]
         };
+
+        // درخواست مجوز نوتیفیکیشن
+        function requestNotificationPermission() {
+            if (Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+        }
 
         function updateSchedule() {
             const startPoint = document.getElementById('startPoint').value;
@@ -172,11 +190,40 @@
                                 <strong>زمان رسیدن:</strong> ${schedule.arrival}
                             </div>
                             <span class="badge badge-success">${hoursLeft} ساعت و ${minutesLeft} دقیقه باقی‌مانده</span>
+                            <button class="btn btn-sm btn-warning" onclick="setAlarm(${depTime}, '${schedule.departure}')">تنظیم هشدار</button>
                          </li>`;
             });
             html += '</ul>';
 
             scheduleDiv.innerHTML = html;
+        }
+
+        // تنظیم هشدار
+        function setAlarm(depTime, departure) {
+            const alertTime = parseInt(document.getElementById('alertTime').value); // گرفتن مقدار دقیقه از انتخابگر
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            const timeUntilDeparture = depTime - currentTime;
+
+            const timeUntilAlert = (timeUntilDeparture - alertTime) * 60 * 1000; // تبدیل به میلی‌ثانیه
+
+            if (timeUntilAlert > 0) {
+                setTimeout(() => {
+                    sendNotification(departure);
+                }, timeUntilAlert);
+                alert(`هشدار برای ${alertTime} دقیقه قبل از حرکت قطار تنظیم شد.`);
+            } else {
+                alert("زمان کافی برای تنظیم هشدار وجود ندارد.");
+            }
+        }
+
+        // ارسال نوتیفیکیشن
+        function sendNotification(departure) {
+            if (Notification.permission === "granted") {
+                new Notification(`قطار در ساعت ${departure} حرکت می‌کند!`);
+            } else {
+                alert("لطفاً مجوز نوتیفیکیشن را فعال کنید.");
+            }
         }
 
         function detectLocation() {
@@ -228,6 +275,9 @@
         function deg2rad(deg) {
             return deg * (Math.PI / 180);
         }
+
+        // در هنگام بارگذاری صفحه درخواست مجوز نوتیفیکیشن می‌کنیم
+        window.onload = requestNotificationPermission;
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
