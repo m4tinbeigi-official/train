@@ -12,8 +12,6 @@
             background: url('https://example.com/train-bg.jpg') no-repeat center center fixed;
             background-size: cover;
             color: #fff;
-            margin: 0;
-            padding: 0;
         }
 
         h1 {
@@ -26,8 +24,6 @@
             background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 15px;
-            margin-top: 100px; /* Adjust for sticky header */
-            margin-bottom: 80px; /* Adjust for sticky footer */
         }
 
         .train-schedule {
@@ -49,18 +45,27 @@
             background-color: #28a745;
         }
 
+        /* Media queries برای بهینه‌سازی در دستگاه‌های کوچکتر */
+        @media (max-width: 767px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            .container {
+                padding: 10px;
+            }
+        }
+
         /* هدر چسبان */
         .sticky-header {
             position: fixed;
             top: 0;
             width: 100%;
             background-color: rgba(0, 0, 0, 0.9);
-            padding: 15px;
+            padding: 10px;
             text-align: center;
             color: #fff;
             z-index: 1000;
             font-size: 1.2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
         }
 
         /* فوتر چسبان */
@@ -73,31 +78,14 @@
             text-align: center;
             color: #fff;
             font-size: 0.9rem;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
         }
 
-        /* Media queries برای بهینه‌سازی در دستگاه‌های کوچکتر */
-        @media (max-width: 767px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-            .container {
-                padding: 15px;
-                margin-top: 120px; /* Adjust for sticky header in mobile */
-                margin-bottom: 100px; /* Adjust for sticky footer in mobile */
-            }
-            .sticky-header {
-                font-size: 1rem;
-                padding: 10px;
-            }
-            .sticky-footer {
-                font-size: 0.8rem;
-                padding: 8px;
-            }
-            .btn-primary, .btn-secondary {
-                font-size: 0.9rem;
-            }
+        /* تب مدیریت هشدارها */
+        #alertTab {
+            margin-top: 20px;
+            display: none;
         }
+
     </style>
 </head>
 <body>
@@ -106,7 +94,7 @@
         قطار حومه‌ای تهران - قرچک
     </div>
 
-    <div class="container">
+    <div class="container" style="margin-top: 80px;">
         <h1 class="text-center">برنامه حرکت قطار</h1>
         <div class="mb-3">
             <label for="startPoint" class="form-label">مبدا را انتخاب کنید</label>
@@ -138,6 +126,13 @@
         <button class="btn btn-primary w-100" onclick="detectLocation()">تشخیص موقعیت من</button>
 
         <button class="btn btn-secondary w-100 mt-3" onclick="showAlertTab()">مدیریت هشدارها</button>
+    </div>
+
+    <!-- تب مدیریت هشدارها -->
+    <div id="alertTab" class="container">
+        <h2>مدیریت هشدارها</h2>
+        <ul id="alertList" class="list-group"></ul>
+        <button class="btn btn-secondary w-100 mt-3" onclick="hideAlertTab()">بازگشت</button>
     </div>
 
     <!-- فوتر چسبان -->
