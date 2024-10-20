@@ -79,6 +79,13 @@
             color: #fff;
             font-size: 0.9rem;
         }
+
+        /* تب های هشدارها */
+        #alertTab {
+            margin-top: 20px;
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -110,7 +117,22 @@
             </select>
         </div>
 
+        <!-- گزینه برای هشدار هر روز -->
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="dailyAlert">
+            <label class="form-check-label" for="dailyAlert">هر روز به من هشدار بده</label>
+        </div>
+
         <button class="btn btn-primary w-100" onclick="detectLocation()">تشخیص موقعیت من</button>
+
+        <button class="btn btn-secondary w-100 mt-3" onclick="showAlertTab()">مدیریت هشدارها</button>
+    </div>
+
+    <!-- تب مدیریت هشدارها -->
+    <div id="alertTab" class="container">
+        <h2>مدیریت هشدارها</h2>
+        <ul id="alertList" class="list-group"></ul>
+        <button class="btn btn-secondary w-100 mt-3" onclick="hideAlertTab()">بازگشت</button>
     </div>
 
     <!-- فوتر چسبان -->
@@ -119,32 +141,7 @@
     </div>
 
     <script>
-        const schedules = {
-            tehran: [
-                { departure: "02:50", arrival: "03:22" },
-                { departure: "06:10", arrival: "06:42" },
-                { departure: "08:15", arrival: "08:47" },
-                { departure: "11:15", arrival: "11:47" },
-                { departure: "14:30", arrival: "15:02" },
-                { departure: "15:30", arrival: "16:02" },
-                { departure: "16:30", arrival: "17:02" },
-                { departure: "17:20", arrival: "17:52" },
-                { departure: "18:40", arrival: "19:12" },
-                { departure: "19:30", arrival: "20:02" }
-            ],
-            gharchak: [
-                { departure: "05:38", arrival: "06:10" },
-                { departure: "06:56", arrival: "07:25" },
-                { departure: "06:03", arrival: "06:35" },
-                { departure: "09:21", arrival: "09:50" },
-                { departure: "09:53", arrival: "10:25" },
-                { departure: "16:08", arrival: "16:40" },
-                { departure: "18:13", arrival: "18:45" },
-                { departure: "18:36", arrival: "19:05" },
-                { departure: "19:14", arrival: "19:45" },
-                { departure: "20:38", arrival: "21:10" }
-            ]
-        };
+        let alarms = [];
 
         // درخواست مجوز نوتیفیکیشن
         function requestNotificationPermission() {
@@ -207,10 +204,19 @@
 
             const timeUntilAlert = (timeUntilDeparture - alertTime) * 60 * 1000; // تبدیل به میلی‌ثانیه
 
+            const dailyAlert = document.getElementById('dailyAlert').checked; // بررسی گزینه هر روز
+
             if (timeUntilAlert > 0) {
-                setTimeout(() => {
+                // تنظیم هشدار برای یک بار یا هر روز
+                const alarmId = setTimeout(() => {
                     sendNotification(departure);
+                    if (dailyAlert) {
+                        setAlarm(depTime + 24 * 60, departure); // اضافه کردن 24 ساعت به depTime
+                    }
                 }, timeUntilAlert);
+                
+                alarms.push({ id: alarmId, time: departure, daily: dailyAlert });
+                updateAlarmList();
                 alert(`هشدار برای ${alertTime} دقیقه قبل از حرکت قطار تنظیم شد.`);
             } else {
                 alert("زمان کافی برای تنظیم هشدار وجود ندارد.");
@@ -224,6 +230,42 @@
             } else {
                 alert("لطفاً مجوز نوتیفیکیشن را فعال کنید.");
             }
+        }
+
+        // نمایش تب هشدارها
+        function showAlertTab() {
+            document.querySelector(".container").style.display = "none";
+            document.getElementById("alertTab").style.display = "block";
+            updateAlarmList();
+        }
+
+        // بازگشت به صفحه اصلی
+        function hideAlertTab() {
+            document.getElementById("alertTab").style.display = "none";
+            document.querySelector(".container").style.display = "block";
+        }
+
+        // به‌روزرسانی لیست هشدارها
+        function updateAlarmList() {
+            const alertList = document.getElementById("alertList");
+            alertList.innerHTML = '';
+
+            alarms.forEach((alarm, index) => {
+                const listItem = document.createElement("li");
+                listItem.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+                listItem.innerHTML = `
+                    <div>هشدار برای ساعت ${alarm.time} ${alarm.daily ? '(هر روز)' : ''}</div>
+                    <button class="btn btn-sm btn-danger" onclick="removeAlarm(${index})">لغو</button>
+                `;
+                alertList.appendChild(listItem);
+            });
+        }
+
+        // لغو هشدار
+        function removeAlarm(index) {
+            clearTimeout(alarms[index].id);
+            alarms.splice(index, 1);
+            updateAlarmList();
         }
 
         function detectLocation() {
