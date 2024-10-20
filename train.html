@@ -80,7 +80,7 @@
             font-size: 0.9rem;
         }
 
-        /* تب های هشدارها */
+        /* تب مدیریت هشدارها */
         #alertTab {
             margin-top: 20px;
             display: none;
@@ -94,7 +94,7 @@
         قطار حومه‌ای تهران - قرچک
     </div>
 
-    <div class="container" style="margin-top: 80px;"> <!-- Adjust margin for sticky header -->
+    <div class="container" style="margin-top: 80px;">
         <h1 class="text-center">برنامه حرکت قطار</h1>
         <div class="mb-3">
             <label for="startPoint" class="form-label">مبدا را انتخاب کنید</label>
@@ -142,6 +142,33 @@
 
     <script>
         let alarms = [];
+
+        const schedules = {
+            tehran: [
+                { departure: "02:50", arrival: "03:22" },
+                { departure: "06:10", arrival: "06:42" },
+                { departure: "08:15", arrival: "08:47" },
+                { departure: "11:15", arrival: "11:47" },
+                { departure: "14:30", arrival: "15:02" },
+                { departure: "15:30", arrival: "16:02" },
+                { departure: "16:30", arrival: "17:02" },
+                { departure: "17:20", arrival: "17:52" },
+                { departure: "18:40", arrival: "19:12" },
+                { departure: "19:30", arrival: "20:02" }
+            ],
+            gharchak: [
+                { departure: "05:38", arrival: "06:10" },
+                { departure: "06:56", arrival: "07:25" },
+                { departure: "06:03", arrival: "06:35" },
+                { departure: "09:21", arrival: "09:50" },
+                { departure: "09:53", arrival: "10:25" },
+                { departure: "16:08", arrival: "16:40" },
+                { departure: "18:13", arrival: "18:45" },
+                { departure: "18:36", arrival: "19:05" },
+                { departure: "19:14", arrival: "19:45" },
+                { departure: "20:38", arrival: "21:10" }
+            ]
+        };
 
         // درخواست مجوز نوتیفیکیشن
         function requestNotificationPermission() {
@@ -203,11 +230,9 @@
             const timeUntilDeparture = depTime - currentTime;
 
             const timeUntilAlert = (timeUntilDeparture - alertTime) * 60 * 1000; // تبدیل به میلی‌ثانیه
-
             const dailyAlert = document.getElementById('dailyAlert').checked; // بررسی گزینه هر روز
 
             if (timeUntilAlert > 0) {
-                // تنظیم هشدار برای یک بار یا هر روز
                 const alarmId = setTimeout(() => {
                     sendNotification(departure);
                     if (dailyAlert) {
