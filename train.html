@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قطار حومه‌ای تهران - قرچک</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font/dist/font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+            background: url('https://example.com/train-bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+        }
+
+        h1 {
+            margin-top: 20px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px #000000;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .train-schedule {
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .list-group-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+        }
+
+        .badge-success {
+            background-color: #28a745;
+        }
+
+        /* Media queries برای بهینه‌سازی در دستگاه‌های کوچکتر */
+        @media (max-width: 767px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            .container {
+                padding: 10px;
+            }
+        }
+
+        /* هدر چسبان */
+        .sticky-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            text-align: center;
+            color: #fff;
+            z-index: 1000;
+            font-size: 1.2rem;
+        }
+
+        /* فوتر چسبان */
+        .sticky-footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            text-align: center;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- هدر چسبان -->
+    <div class="sticky-header">
+        قطار حومه‌ای تهران - قرچک
+    </div>
+
+    <div class="container" style="margin-top: 80px;"> <!-- Adjust margin for sticky header -->
+        <h1 class="text-center">برنامه حرکت قطار</h1>
+        <div class="mb-3">
+            <label for="startPoint" class="form-label">مبدا را انتخاب کنید</label>
+            <select class="form-select" id="startPoint" onchange="updateSchedule()">
+                <option value="">انتخاب کنید...</option>
+                <option value="tehran">تهران</option>
+                <option value="gharchak">قرچک</option>
+            </select>
+        </div>
+
+        <div id="schedule" class="train-schedule"></div>
+        <button class="btn btn-primary w-100" onclick="detectLocation()">تشخیص موقعیت من</button>
+    </div>
+
+    <!-- فوتر چسبان -->
+    <div class="sticky-footer">
+        ساخته شده با قلب سفید توسط ریک سانچز با حمایت تاپین و استفاده از فونت وزیر به یاد صابر راستی کردار
+    </div>
+
+    <script>
+        const schedules = {
+            tehran: [
+                { departure: "02:50", arrival: "03:22" },
+                { departure: "06:10", arrival: "06:42" },
+                { departure: "08:15", arrival: "08:47" },
+                { departure: "11:15", arrival: "11:47" },
+                { departure: "14:30", arrival: "15:02" },
+                { departure: "15:30", arrival: "16:02" },
+                { departure: "16:30", arrival: "17:02" },
+                { departure: "17:20", arrival: "17:52" },
+                { departure: "18:40", arrival: "19:12" },
+                { departure: "19:30", arrival: "20:02" }
+            ],
+            gharchak: [
+                { departure: "05:38", arrival: "06:10" },
+                { departure: "06:56", arrival: "07:25" },
+                { departure: "06:03", arrival: "06:35" },
+                { departure: "09:21", arrival: "09:50" },
+                { departure: "09:53", arrival: "10:25" },
+                { departure: "16:08", arrival: "16:40" },
+                { departure: "18:13", arrival: "18:45" },
+                { departure: "18:36", arrival: "19:05" },
+                { departure: "19:14", arrival: "19:45" },
+                { departure: "20:38", arrival: "21:10" }
+            ]
+        };
+
+        function updateSchedule() {
+            const startPoint = document.getElementById('startPoint').value;
+            const scheduleDiv = document.getElementById('schedule');
+            scheduleDiv.innerHTML = ''; // Clear previous content
+
+            if (!startPoint) return;
+
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+
+            const availableSchedules = schedules[startPoint]
+                .filter(item => {
+                    const [depHour, depMinute] = item.departure.split(':').map(Number);
+                    const depTime = depHour * 60 + depMinute;
+                    return depTime > currentTime;
+                });
+
+            if (availableSchedules.length === 0) {
+                scheduleDiv.innerHTML = '<div class="alert alert-info">هیچ قطاری در امروز موجود نیست.</div>';
+                return;
+            }
+
+            let html = '<ul class="list-group">';
+            availableSchedules.forEach(schedule => {
+                const [depHour, depMinute] = schedule.departure.split(':').map(Number);
+                const depTime = depHour * 60 + depMinute;
+
+                const timeRemaining = depTime - currentTime;
+                const hoursLeft = Math.floor(timeRemaining / 60);
+                const minutesLeft = timeRemaining % 60;
+
+                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>زمان حرکت:</strong> ${schedule.departure}<br>
+                                <strong>زمان رسیدن:</strong> ${schedule.arrival}
+                            </div>
+                            <span class="badge badge-success">${hoursLeft} ساعت و ${minutesLeft} دقیقه باقی‌مانده</span>
+                         </li>`;
+            });
+            html += '</ul>';
+
+            scheduleDiv.innerHTML = html;
+        }
+
+        function detectLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(successLocation, errorLocation);
+            } else {
+                alert("این مرورگر از قابلیت مکان‌یابی پشتیبانی نمی‌کند.");
+            }
+        }
+
+        function successLocation(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            // فرض می‌کنیم تهران و قرچک دارای مختصات زیر هستند
+            const tehranCoords = { lat: 35.6892, lon: 51.3890 };
+            const gharchakCoords = { lat: 35.4372, lon: 51.5727 };
+
+            const distanceToTehran = getDistance(lat, lon, tehranCoords.lat, tehranCoords.lon);
+            const distanceToGharchak = getDistance(lat, lon, gharchakCoords.lat, gharchakCoords.lon);
+
+            if (distanceToTehran < distanceToGharchak) {
+                document.getElementById('startPoint').value = "tehran";
+            } else {
+                document.getElementById('startPoint').value = "gharchak";
+            }
+
+            updateSchedule();
+        }
+
+        function errorLocation() {
+            alert("عدم امکان دریافت موقعیت مکانی.");
+        }
+
+        // محاسبه فاصله تقریبی بر اساس فرمول هابرساین (Haversine Formula)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // شعاع زمین به کیلومتر
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c; // فاصله به کیلومتر
+            return distance;
+        }
+
+        function deg2rad(deg) {
+            return deg * (Math.PI / 180);
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
